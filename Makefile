@@ -1,19 +1,20 @@
-AS 							= as
-LD 							= ld 
+AS                          = as
+LD                          = ld
 
-LDFLAGS 					= -m elf_x86_64 -o
-ASFLAGS 					= --64 -g -o
+LDFLAGS                     = -m elf_x86_64 -o
+ASFLAGS                     = --64 -g -o
 
-DIR_BUILD 					= build
-DIR_SRC						= src
-DIR_OBJ						= $(DIR_BUILD)/obj
-DIR_EXEC 					= $(DIR_BUILD)/exec
+DIR_BUILD                   = build
+DIR_SRC                     = src
+DIR_OBJ                     = $(DIR_BUILD)/obj
+DIR_EXEC                    = $(DIR_BUILD)/exec
 
-SOURCES						:= $(wildcard $(DIR_SRC)/*.asm) $(wildcard $(DIR_SRC)/*.s)
-OBJECTS						:= $(patsubst $(DIR_SRC)/%.asm,$(DIR_OBJ)/%.o,$(patsubst $(DIR_SRC)/%.s,$(DIR_OBJ)/%.o,$(SOURCES)))
-TARGET						= $(DIR_EXEC)/seed
+SOURCES                     := $(wildcard $(DIR_SRC)/*.asm) $(wildcard $(DIR_SRC)/*.s)
+OBJECTS                     := $(patsubst $(DIR_SRC)/%.asm,$(DIR_OBJ)/%.o,$(patsubst $(DIR_SRC)/%.s,$(DIR_OBJ)/%.o,$(SOURCES)))
+TARGET                      = $(DIR_EXEC)/seed
 
 .PHONY: all clean debug
+
 all: $(TARGET)
 
 $(DIR_OBJ)/%.o: $(DIR_SRC)/%.asm
@@ -39,4 +40,7 @@ debug: all
 	gdb -q -iex "set auto-load safe-path /" -x .gdbinit \
 		-ex "print/x \$$eax" \
 		-ex "print/u \$$eax" \
+		-ex "print/x \$$ax" \
+		-ex "print/u \$$al" \
+		-ex "print/u \$$ah" \
 		$(TARGET)

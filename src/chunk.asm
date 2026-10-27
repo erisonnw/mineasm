@@ -1,9 +1,9 @@
-.globl get_chunk
+.globl chunk
 .globl loaded
 .section .text
 
-.type get_chunk,@function
-get_chunk:
+.type chunk,@function
+chunk:
     movl %edi, %r8d
     movl %esi, %r9d
 
@@ -37,7 +37,6 @@ get_chunk:
 .Lnop:
     xorl %eax, %eax
     ret
-
 
 .section .bss
     .balign 16
