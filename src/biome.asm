@@ -6,9 +6,16 @@
 .macro clamp value, min, max, tmp 
     movss \min, \tmp
     maxss \tmp, \value
-
     movss \max, \tmp
     minss \tmp, \value
+.endm
+
+.macro println string, len
+    movq $1, %rax
+    movq $1, %rdi
+    leaq \string(%rip), %rsi
+    movq $\len, %rdx
+    syscall
 .endm
 
 .type biome_type,@function
@@ -87,7 +94,54 @@ biome_type:
     jmp .Lloop
 
 .Lbiome:
+    movl %eax, -28(%rbp)
 
+    cmpl $0, %eax
+    je .Ldesert
+    cmpl $1, %eax
+    je .Lsavanna
+    cmpl $2, %eax
+    je .Lplains
+    cmpl $3, %eax
+    je .Lforest
+    cmpl $4, %eax
+    je .Ljungle
+    cmpl $5, %eax
+    je .Ltaiga
+    cmpl $6, %eax
+    je .Lsnowy_plains
+    cmpl $7, %eax
+    je .Lswamp
+    jmp .Ldone
+
+.Ldesert: 
+    println desert, 7
+    jmp .Ldone
+.Lsavanna: 
+    println savanna, 7
+    jmp .Ldone
+.Lplains: 
+    println plains, 6
+    jmp .Ldone
+.Lforest: 
+    println forest, 6
+    jmp .Ldone
+.Ljungle: 
+    println jungle, 6
+    jmp .Ldone
+.Ltaiga: 
+    println taiga, 5
+    jmp .Ldone
+.Lsnowy_plains: 
+    println snowy_plains, 12
+    jmp .Ldone
+.Lswamp: 
+    println swamp, 5
+    jmp .Ldone
+
+.Ldone:
+    movl -28(%rbp), %eax
+    
 6:  # end
     leave
     ret
@@ -101,6 +155,15 @@ v0_0016f:   .float 0.0016
 v64f:       .float 64.0
 distance:   .float 999.0
 scale:      .float 4.656612875e-10
+
+desert:        .ascii "Deserto"
+savanna:       .ascii "Savanna"
+plains:        .ascii "Plains"
+forest:        .ascii "Forest"
+jungle:        .ascii "Jungle"
+taiga:         .ascii "Taiga"
+snowy_plains:  .ascii "Snowy Plains"
+swamp:         .ascii "Swamp"
 
 type:
     .float  1.0, -1.0;  .long 0   # Desert / Badlands
