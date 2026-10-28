@@ -1,7 +1,7 @@
 <p align="right">
   <strong>Language:</strong>
   <a href="README">English</a> | 
-  <a href="README_PT-BR">Português (Brasil)</a>
+  <a href="README_PT-BR.md">Portugues (Brasil)</a>
 </p>
 
 ![Banner](./.assets/banner/Mineasm.png)
