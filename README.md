@@ -8,9 +8,9 @@
 
 > A simple Minecraft-style voxel world engine written in "Assembly"
 
-![language](https://img.shield.io/badge/linguage-Assembly%20x86--64-orange)
-![platform](https://img.shield.io/badge/platform-linux-blue)
-![license](https://img.shield.io/badge/license-MIT-green)
+![language](https://img.shields.io/badge/language-Assembly%20x86--64-orange)
+![platform](https://img.shields.io/badge/platform-Linux-blue)
+![license](https://img.shields.io/badge/MIT-license-green)
 
 ## About the Project
 - **Spatial Hashing**: Maps block/chunk coordinates into an avalanche-mixed 32 bits hash based on dynamic linear-congruential strides.

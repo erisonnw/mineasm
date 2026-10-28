@@ -8,9 +8,9 @@
 
 > Um motor de mundo voxel simples no estilo Minecraft escrito em "Assembly"
 
-![idioma](https://img.shield.io/badge/linguagem-Assembly%20x86--64-orange)
-![plataforma](https://img.shield.io/badge/plataforma-linux-blue)
-![licença](https://img.shield.io/badge/licen%C3%A7a-MIT-green)
+![linguagem](https://img.shields.io/badge/linguagem-Assembly%20x86--64-orange)
+![Plataforma](https://img.shields.io/badge/platforma-Linux-blue)
+![Licença](https://img.shields.io/badge/licença-MIT-green)
 
 ## Sobre o Projeto
 - **Hashing Espacial**: Mapeia coordenadas de blocos/chunks em um hash de mistura por avalanche de 32 bits baseado em passos congruenciais lineares dinâmicos.
