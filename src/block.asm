@@ -133,6 +133,13 @@ set_block:
     addq $48, %rsp
     ret
 
+
+.type break_block,@function
+break_block:
+    subq $48, %rsp
+    
+
+
 .section .rodata
     .balign 4
 v16f: .float 16.0

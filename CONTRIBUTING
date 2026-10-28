@@ -1,0 +1,41 @@
+# Contributing
+Thank you for interest in contributing to `mineasm`! Because this is a low-level Assembly project, small changes can have a huge impact on system stability and performance. Please follow these guidelines to keep the codebase clean and functional.
+
+## Environment & Tools
+To assembly, link, and run this project, you will need:
+   * An assembler (e.g., `as` or `gcc`)
+   * The `make` utility
+   * A linker (e.g., `ld` or `gcc`)
+
+## How to Build and Test Locally
+Always ensure your code compilers and links cleanly without any warning before submitting changes.
+
+1. To remove previous object files and binaries:
+```bash
+make clean
+```
+
+2. To compile the entire project:
+```bash
+make
+```
+
+3. Debug (Optional)
+```bash
+make debug
+```
+
+4. Run the compiled executable inside the build folder to verify your changes:
+```bash
+./build/exec/seed
+```
+
+## Pull Request Process
+1. Fork the repository.
+2. Create a new branch targeting the `development` branch:
+   ```bash
+   git checkout -b feature/your-improvement
+   ```
+3. Commit your changes with clear, discriptive commit messages.
+4. Verify that `make clean && make` works perfectly after your edits.
+5. Submit a Pull Request pointing back to the `development` branch of this repository.

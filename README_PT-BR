@@ -1,0 +1,228 @@
+<p align="right">
+  <strong>Idioma:</strong>
+  <a href="README">English</a> | 
+  <a href="README_PT-BR">Português (Brasil)</a>
+</p>
+
+![Banner](./.assets/banner/Mineasm.png)
+
+> Um motor de mundo voxel simples no estilo Minecraft escrito em "Assembly"
+
+![idioma](https://img.shield.io/badge/linguagem-Assembly%20x86--64-orange)
+![plataforma](https://img.shield.io/badge/plataforma-linux-blue)
+![licença](https://img.shield.io/badge/licen%C3%A7a-MIT-green)
+
+## Sobre o Projeto
+- **Hashing Espacial**: Mapeia coordenadas de blocos/chunks em um hash de mistura por avalanche de 32 bits baseado em passos congruenciais lineares dinâmicos.
+- **Biomas Procedurais**: Distribui arquétipos de terreno via mapeamento de distância vetorial pelo Vizinho Mais Próximo 2D (Nearest-Neighbor) no espaço Temperatura/Umidade.
+- **Cache de Busca de Chunks**: Uma estrutura fixa em memória que mantém chunks ativos e rastreia flags de carregamento via escaneamento por busca linear iterativa.
+- **Tradução Matemática de Voxel**: Utiliza instruções de ponto flutuante especializadas via hardware (`roundss`) para converter pontos espaciais 3D globais em offsets locais de blocos dentro dos chunks.
+
+Todo o código da arquitetura é direcionado à **ABI Nativa Linux x86-64**, mantendo requisitos de pilha de baixo nível e convenções de chamada.
+
+## Estrutura do Projeto
+```bash
+.
+├── AUTHORS
+├── build
+│   ├── exec
+│   │   └── *elf
+│   └── obj
+│       └── *.o
+├── CONTRIBUTING
+├── Makefile
+├── README.md
+├── README_PT-BR.md
+└── src
+    ├── biome.asm
+    ├── block.asm
+    ├── chunk.asm
+    ├── main.asm
+    └── seed.asm
+```
+
+## Requisitos
+- Linux **x86-64**
+- GNU binutils (alvos de compilação na sintaxe `as` / gas)
+
+## Compilação e Execução
+### Utilizando Makefiles
+```bash
+make
+make debug        # (Opcional)
+./build/exec/seed
+```
+
+<details>
+<summary>
+<br>
+Makefile
+</br>
+</summary>
+
+```Makefile
+AS                          = as
+LD                          = ld
+
+LDFLAGS                     = -m elf_x86_64 -o
+ASFLAGS                     = --64 -g -o
+
+DIR_BUILD                   = build
+DIR_SRC                     = src
+DIR_OBJ                     = $(DIR_BUILD)/obj
+DIR_EXEC                    = $(DIR_BUILD)/exec
+
+SOURCES                     := $(wildcard $(DIR_SRC)/*.asm) $(wildcard $(DIR_SRC)/*.s)
+OBJECTS                     := $(patsubst $(DIR_SRC)/%.asm,$(DIR_OBJ)/%.o,$(patsubst $(DIR_SRC)/%.s,$(DIR_OBJ)/%.o,$(SOURCES)))
+TARGET                      = $(DIR_EXEC)/seed
+
+.PHONY: all clean debug
+
+all: $(TARGET)
+
+$(DIR_OBJ)/%.o: $(DIR_SRC)/%.asm
+	@mkdir -p $(DIR_OBJ)
+	$(AS) $(ASFLAGS) $@ $<
+
+$(DIR_OBJ)/%.o: $(DIR_SRC)/%.s
+	@mkdir -p $(DIR_OBJ)
+	$(AS) $(ASFLAGS) $@ $<
+
+$(TARGET): $(OBJECTS)
+	@mkdir -p $(DIR_EXEC)
+	$(LD) $(LDFLAGS) $(TARGET) $(OBJECTS)
+
+clean:
+	rm -rf $(DIR_BUILD)
+	rm -f .gdbinit
+
+debug: all
+	@echo "set debuginfod enabled off" > .gdbinit
+	@echo "tbreak .exit_program" >> .gdbinit
+	@echo "run" >> .gdbinit
+	gdb -q -iex "set auto-load safe-path /" -x .gdbinit \
+		-ex "print/x \$$eax" \
+		-ex "print/u \$$eax" \
+		-ex "print/x \$$ax" \
+		-ex "print/u \$$al" \
+		-ex "print/u \$$ah" \
+		$(TARGET)
+```
+</details>
+
+## Exemplo de Saída
+```bash
+gdb -q -iex "set auto-load safe-path /" -x .gdbinit \
+        -ex "print/x \$eax" \
+        -ex "print/u \$eax" \
+        -ex "print/x \$ax" \
+        -ex "print/u \$al" \
+        -ex "print/u \$ah" \
+        build/exec/seed
+Reading symbols from build/exec/seed...
+Temporary breakpoint 1 at 0x40149a: file src/main.asm, line 41.
+Savanna
+Temporary breakpoint 1, exit_program () at src/main.asm:41
+41          movq %rax, %rdi
+Temporary breakpoint 2 at 0x40149a: file src/main.asm, line 41.
+Savanna
+Temporary breakpoint 2, exit_program () at src/main.asm:41
+41          movq %rax, %rdi
+$1 = 0x103
+$2 = 259
+$3 = 0x103
+--Type <RET> for more, q to quit, c to continue without paging--
+$4 = 3
+$5 = 1
+(gdb) 
+```
+
+---
+
+## Referência da API
+
+| Função | Assinatura (Equivalente em C) | Descrição |
+| :--- | :--- | :--- |
+| `coord_tohash` | `uint32_t coord_tohash(int x, int y, int z, int seed)` | Calcula um hash de mistura por avalanche pseudo-aleatório usando operações bitwise. |
+| `biome_type` | `int biome_type(int x, int y, int z, int seed)` | Avalia posições e imprime o bioma escolhido no stdout. |
+| `chunk` | `void *chunk(int cx, int cz)` | Executa uma busca linear na matriz `loaded` para encontrar o chunk correspondente. |
+| `get_block` | `uint16_t get_block(int x, int y, int z)` | Resolve alvos globais e retorna dados empacotados de bloco de 16 bits. |
+| `set_block` | `void set_block(int x, int y, int z, uint8_t type, uint8_t is_solid)` | Atualiza o estado de 2 bytes do chunk em coordenadas específicas. |
+| `break_block` | `void break_block(int x, int y, int z, ...)`| *(Em Construção)* Irá manipular a intersecção de raycasting para destruição de blocos. |
+
+---
+
+## Detalhes Técnicos
+
+### Hashing Espacial (`seed.asm`)
+O motor de seeds de coordenadas utiliza constantes inteiras fixas para randomizar vetores de entrada (`POSX = 0xcc9e2d51`, `POSY = 0x1b873593`, `POSZ = 0xe6546b64`, `SEED = 0x85ebca6b`).
+A somatória linear resultante passa por um filtro de avalanche de deslocamento bitwise:
+```text
+h = h ^ (h >> 13) * 0xc2b2ae35
+h = h ^ (h >> 16)
+```
+
+### Geração de Biomas (`biome.asm`)
+1. **Extração de Temperatura**: Calcula `coord_tohash(x, y, z, seed)`, escala por `4.656612875e-10` e limita (clamp) o resultado entre `[-1.0, 1.0]`.
+2. **Extração de Umidade**: Calcula `coord_tohash(x, y, z, seed + 12345)`, escala de maneira semelhante e limita entre `[-1.0, 1.0]`.
+3. **Ajuste de Altitude**: Ajusta a temperatura com base em sua posição vertical em relação ao nível do mar ($y = 64.0$):
+$$\text{Temperatura} = \text{Temperatura} - ((y - 64.0) \times 0.0016)$$
+4. **Mapeamento por Vizinho Mais Próximo**: Interpola o gráfico de clima escolhendo o ID do bioma com a menor distância Euclidiana ao quadrado ($d^2 = \Delta \text{Temp}^2 + \Delta \text{Umidade}^2$).
+
+---
+
+### Arquitetura do Cache de Chunks (`chunk.asm`)
+O motor de memória aloca uma matriz contínua de rastreamento de `40.000` bytes rotulada como `loaded` na seção `.bss`.
+- **Layout do Array**: Até **9 slots ativos**, onde cada entrada consome exatamente **`4.112` bytes**:
+  - `bytes 0-3` (Offset 0): Coordenada X do chunk (`int`, 4 bytes)
+  - `bytes 4-7` (Offset 4): Coordenada Z do chunk (`int`, 4 bytes)
+  - `bytes 8-4103` (Offset 8): Array de dados brutos de blocos voxel (`6.144` bytes)
+  - `byte 4104` (Offset 4104): Flag de ativação `is_loaded` (`uint8_t`, 1 byte)
+- **Motor de Busca**: A função `chunk(cx, cz)` utiliza os registradores `%r8d` e `%r9d` para varrer as entradas sequencialmente. Se uma entrada estiver ativa (`is_loaded != 0`) e corresponder às dimensões buscadas, o ponteiro de endereço base da entrada é retornado via `%rax`. Caso não seja encontrado após 9 verificações, retorna um ponteiro nulo (`NULL`).
+
+---
+
+### Lógica de Acesso a Blocos Voxel (`block.asm`)
+- **Dimensões**: Os chunks possuem um tamanho rígido de grade espacial de **X: 16 × Y: 24 × Z: 16**, resultando em exatamente `6.144` blocos por setor carregado.
+- **Conversão Global para Local**: As coordenadas são processadas via rotinas matemáticas SSE. O código calcula os limites do chunk dividindo as coordenadas por `16.0` e aplicando um arredondamento para baixo (`roundss $1`, equivalente ao `floor()`):
+  $$cx = \lfloor x / 16.0 \rfloor, \quad cz = \lfloor z / 16.0 \rfloor$$
+- **Offset Local na Grade**: As coordenadas locais são extraídas subtraindo as origens dos chunks calculados:
+  $$lx = x - (cx \times 16), \quad lz = z - (cz \times 16)$$
+- **Mapeamento de Aplatamento de Memória**: Arrays voxel resolvem estruturas de destino achatando matrizes multidimensionais em um único índice contínuo:
+  $$\text{Índice} = lx \times (24 \times 16) + y \times 16 + lz \implies lx \times 384 + y \times 16 + lz$$
+- **Protocolo de Armazenamento por Byte**: Cada bloco voxel consome **2 bytes sequenciais** na região de memória de destino (offset `Índice * 2`):
+  - `Byte 0`: `type` (tipo de material do voxel)
+  - `Byte 1`: Flag de configuração estrutural (`is_solid`)
+- **Proteção de Limites de Acesso**: Requisições fora dos limites verticais válidos ($y < 0$ ou $y \ge 24$) ignoram o processamento completamente. Na função `get_block`, consultas fora dos limites ou em chunks inexistentes retornam o **código sentinela `10`** (tratado como espaço de ar/erro).
+
+---
+
+## Restrições de Baixo Nível e Regras de ABI
+- **Convenção de Chamadas**: Aderência estrita à **System V AMD64 ABI**. Parâmetros inteiros e ponteiros são passados via `%edi`, `%esi`, `%edx`, `%ecx`, `%r8d` e `%r9d`.
+- **Matemática Float por Hardware**: Manipulada inteiramente por **Extensões Escalares SSE** (`movss`, `maxss`, `minss`, `mulss`, `subss`, `addss`, `comiss`, `cvtsi2ss`, `roundss`).
+- **Referências de Memória**: Utiliza endereçamento estritamente relativo a `%rip` para seções de strings locais, estruturas e buffers float, mantendo compatibilidade com configurações modernas de linkagem Executável Independente de Posição (`-pie`).
+- **Subsistema de E/S**: Mensagens de diagnóstico padrão utilizam chamadas de sistema diretas do POSIX (`syscall` com `%rax = 1`, `%rdi = 1`) para eliminar camadas de dependência quando aplicável.
+
+## Status de Desenvolvimento
+- [x] Algoritmo de mistura de coordenadas espaciais de matriz
+- [x] Limitação de float (clamp) e sistema de bioma por distância vetorial de Vizinho Mais Próximo
+- [x] Integração com `sys-call` POSIX em Assembly nativo para impressão localizada
+- [x] Tabelas de cache em memória para rastreamento iterativo de ponteiros de chunks
+- [x] Traduções de coordenadas com aplatamento de arrays multidimensionais
+- [ ] Lógica de raycasting para destruição de blocos (estrutura de loop para `break_block` inicializada)
+- [ ] Geração de terreno dependente de bioma
+- [ ] Auditoria de alinhamento de pilha de 16 bytes em rotinas internas para prevenir falhas de tempo de execução da ABI durante extensões com `libc`
+
+## Licença
+Distribuído sob a **Licença MIT**. Veja o arquivo [`LICENSE`](LICENSE) para mais detalhes.
+
+---
+
+> NOTA: O código hospedado neste repositório contém alguns erros lógicos intencionais/não resolvidos.
+
+---
+
+<p align="center">
+  <img src="https://upload.wikimedia.org/wikipedia/commons/8/8a/Google_Gemini_logo.svg" alt="Google Gemini Logo" width="120"/><br>
+  <sub>Ficheiro README e README_PT-BR automatizado pelo <strong>Google Gemini</strong></sub>
+</p>

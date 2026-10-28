@@ -166,7 +166,7 @@ snowy_plains:  .ascii "Snowy Plains"
 swamp:         .ascii "Swamp"
 
 type:
-    .float  1.0, -1.0;  .long 0   # Desert / Badlands
+    .float  1.0, -1.0;  .long 0   # Desert
     .float  0.5, -0.5;  .long 1   # Savanna
     .float  0.0,  0.0;  .long 2   # Plains
     .float  0.0,  0.4;  .long 3   # Forest
