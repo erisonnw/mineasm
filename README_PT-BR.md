@@ -1,6 +1,6 @@
 <p align="right">
   <strong>Idioma:</strong>
-  <a href="README">English</a> | 
+  <a href="README.md">English</a> | 
   <a href="README_PT-BR.md">Português (Brasil)</a>
 </p>
 
