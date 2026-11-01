@@ -5,6 +5,7 @@
 .extern chunk
 .extern get_block
 .extern set_block
+.extern break_block
 
 .section .text
 
@@ -26,14 +27,21 @@ _start:
     call chunk
 
     movl $672, %edi
-    movl $10, %esi
+    movl $12, %esi
     movl $1024, %edx
     movb $3, %r8b
     movb $1, %r9b
     call set_block
 
     movl $672, %edi
-    movl $10, %esi
+    movl $11, %esi
+    movl $1024, %edx
+    movl $0, %r8d
+    movl $0, %r9d
+    call break_block
+
+    movl $672, %edi
+    movl $12, %esi
     movl $1024, %edx
     call get_block
 
